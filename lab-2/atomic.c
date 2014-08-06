@@ -10,7 +10,7 @@
 extern void lock_mutex(void *mutex);
 extern void unlock_mutex(void *mutex);
 
-pthread_t tid[2];
+pthread_t tid[3];
 int counter;
 // pthread_mutex_t lock;
 unsigned int mutexlock = unlocked;
@@ -22,16 +22,25 @@ void *doSomeThing(void *arg)
 	unsigned long i = 0;
 	counter += 1;
 	printf("\n Job %d started\n", counter);
-
-	for (i = 0; i < (0xFFFFFFFF); i++);
+	fflush(stdout);
+	for (i = 0; i < (1000/*0xFFFFFFFF*/); i++);
 
 	printf("\n Job %d finished\n", counter);
-
+	fflush(stdout);
 	// pthread_mutex_unlock(&lock);
 	unlock_mutex(&mutexlock);
+	printf("threak exit! lock=%u\n", mutexlock);
 	return NULL;
 }
-
+void monitor(void *arg)
+{
+	while(1)
+	{
+		printf("The Mutex Lock status is %u\n", mutexlock);
+		fflush(stdout);
+		sleep(1);
+	}
+}
 int main(void)
 {
 	int i = 0;
@@ -53,7 +62,8 @@ int main(void)
 
 	pthread_join(tid[0], NULL);
 	pthread_join(tid[1], NULL);
+	pthread_create(&(tid[2]), NULL, &monitor, NULL);
+	pthread_join(tid[2], NULL);
 	// pthread_mutex_destroy(&lock);
-
 	return 0;
 }
